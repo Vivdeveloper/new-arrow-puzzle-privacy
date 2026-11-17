@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pawrrow challenge</title>
+<meta name="description" content="A friend challenges you in Pawrrow: Arrow Puzzle Escape.">
+<meta property="og:title" content="Can you beat me in Pawrrow?">
+<meta property="og:description" content="Clear the same arrow puzzle faster than your friend.">
+<style>
+  :root { --bg: #ffffff; --ink: #16181c; --muted: #6b7079; --accent: #fc3a46; --card: #f0f2f6; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #121317; --ink: #f2f3f5; --muted: #9aa0aa; --card: #1e2026; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px;
+         background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  main { width: 100%; max-width: 420px; text-align: center; background: var(--card); border-radius: 24px; padding: 28px 22px; }
+  h1 { font-size: 26px; margin: 8px 0 4px; }
+  .result { font-size: 22px; font-weight: 700; margin: 8px 0 16px; }
+  p { color: var(--muted); margin: 0 0 20px; }
+  a.button { display: block; padding: 14px 18px; border-radius: 999px; background: var(--accent); color: #fff;
+             font-weight: 700; text-decoration: none; margin: 10px 0; }
+  a.secondary { background: transparent; color: var(--ink); border: 2px solid var(--ink); }
+  .trophy { font-size: 52px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="trophy" aria-hidden="true">🏆</div>
+  <h1>A friend challenges you!</h1>
+  <div class="result" id="result">Pawrrow: Arrow Puzzle Escape</div>
+  <p>Clear the same level faster to win.</p>
+  <a class="button" id="open" href="#">Play the challenge</a>
+  <a class="button secondary" id="store" href="https://play.google.com/store/apps/details?id=com.buildwithvivek.newarrowpuzzlegame">Get the game on Google Play</a>
+</main>
+<script>
+  // Challenge links: ?l=<level>&t=<ms>&s=<stars> (see src/data/challenge.ts in the game).
+  (function () {
+    var PKG = 'com.buildwithvivek.newarrowpuzzlegame';
+    var SCHEME = 'newarrowpuzzlegame';
+    var STORE = 'https://play.google.com/store/apps/details?id=' + PKG;
+    var q = new URLSearchParams(location.search);
+    var l = q.get('l'), d = q.get('d'), t = q.get('t'), s = q.get('s');
+    var daily = /^\d{4}-\d{2}-\d{2}$/.test(d || '');
+    var valid = (daily || /^\d{1,9}$/.test(l || '')) && /^\d{1,9}$/.test(t || '') && /^[1-3]$/.test(s || '');
+    if (valid) {
+      var secs = Math.round(Number(t) / 1000), m = Math.floor(secs / 60), sec = String(secs % 60).padStart(2, '0');
+      // Daily #1 is 1 October 2026 (as in the game).
+      var where = daily ? 'Daily #' + (Math.round((Date.parse(d + 'T00:00:00Z') - Date.UTC(2026, 9, 1)) / 86400000) + 1) : 'Level ' + l;
+      document.getElementById('result').textContent = where + '  ' + '⭐'.repeat(Number(s)) + '☆'.repeat(3 - Number(s)) + '  ·  ' + m + ':' + sec;
+    }
+    var which = daily ? 'd=' + encodeURIComponent(d) : 'l=' + encodeURIComponent(l || '');
+    var path = 'challenge?' + which + '&t=' + encodeURIComponent(t || '') + '&s=' + encodeURIComponent(s || '');
+    var android = /Android/i.test(navigator.userAgent);
+    // On Android, an intent link opens the game when it's installed and the Play Store when it isn't.
+    var open = android
+      ? 'intent://' + path + '#Intent;scheme=' + SCHEME + ';package=' + PKG + ';S.browser_fallback_url=' + encodeURIComponent(STORE) + ';end'
+      : STORE;
+    var button = document.getElementById('open');
+    button.href = valid ? open : STORE;
+    if (valid && android) location.replace(open);
+  })();
+</script>
+</body>
+</html>
